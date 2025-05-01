@@ -1,3 +1,8 @@
+// import { Table } from "lucide-react"
+import { useLoadingStore } from "../../pages/model/useLoadingStore"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "../../shared/ui"
+import { PostList } from "./PostList"
+
 // 게시물 테이블 렌더링
 const renderPostTable = () => (
   <Table>
@@ -17,5 +22,6 @@ const renderPostTable = () => (
 )
 
 export const PostTable = () => {
+  const loading = useLoadingStore((state) => state.loading) // 로딩 상태 초기화
   return <>{loading ? <div className="flex justify-center p-4">로딩 중...</div> : renderPostTable()}</>
 }

@@ -1,73 +1,52 @@
-import { useEffect, useState } from "react"
-import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
+import { useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Textarea,
-} from "../shared/ui"
-import { PostList } from "../widgets/ui/PostList"
-import { AddPostForm } from "../features/post/ui/AddPostForm"
-import { EditPostForm } from "../features/post/ui/EditPostForm"
+
+import { usePaginationStore } from "../entities/post/model/usePaginationStore"
+import { usePostStore } from "../entities/post/model/usePostStore"
+import { useSearchQueryStore } from "../entities/post/model/useSearchQueryStore"
+import { useSortStore } from "../entities/post/model/useSortStore"
+import { UserInfoModal } from "../entities/user/ui/UserInfoModal"
 import { AddCommentForm } from "../features/comment/ui/AddCommentForm"
 import { EditCommentForm } from "../features/comment/ui/EditCommentForm"
+import { useSelectedTagStore } from "../features/post/model/useSelectedTagStore"
+import { AddPostForm } from "../features/post/ui/AddPostForm"
+import { EditPostForm } from "../features/post/ui/EditPostForm"
+import { FilterPostSelect } from "../features/post/ui/FilterPostSelect"
+import { SearchPostInput } from "../features/post/ui/SearchPostInput"
+import { SortbyPostSelect } from "../features/post/ui/SortbyPostSelect"
+import { SortPostSelect } from "../features/post/ui/SortPostSelect"
+import { Card, CardContent } from "../shared/ui"
+import { PaginationPost } from "../features/post/ui/PaginationPost"
 import { PostDetailModal } from "../widgets/ui/PostDetailModal"
-import { UserInfoModal } from "../widgets/ui/UserInfoModal"
-import { FilterPostSelect } from "../features/post/FilterPostSelect"
-import { SearchPostInput } from "../features/post/SearchPostInput"
-import { SortbyPostSelect } from "../features/post/SortbyPostSelect"
-import { SortPostSelect } from "../features/post/SortPostSelect"
-import { PaginationPost } from "../features/post/PaginationPost"
-import { PostTable } from "../widgets/ui/PostTable"
 import { PostHeader } from "../widgets/ui/PostHeader"
+import { PostTable } from "../widgets/ui/PostTable"
+import { useLoadingStore } from "./model/useLoadingStore"
+import { ResonsePostPagination, ResponseUser } from "../entities/post/model/type"
 
 const PostsManager = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const queryParams = new URLSearchParams(location.search)
 
-  // 상태 관리
-  const [posts, setPosts] = useState([])
-  const [total, setTotal] = useState(0)
-  const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"))
-  const [limit, setLimit] = useState(parseInt(queryParams.get("limit") || "10"))
-  const [searchQuery, setSearchQuery] = useState(queryParams.get("search") || "")
-  const [selectedPost, setSelectedPost] = useState(null)
-  const [sortBy, setSortBy] = useState(queryParams.get("sortBy") || "")
-  const [sortOrder, setSortOrder] = useState(queryParams.get("sortOrder") || "asc")
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
-  const [loading, setLoading] = useState(false)
-  const [tags, setTags] = useState([])
-  const [selectedTag, setSelectedTag] = useState(queryParams.get("tag") || "")
-  const [comments, setComments] = useState({})
-  const [selectedComment, setSelectedComment] = useState(null)
-  const [newComment, setNewComment] = useState({ body: "", postId: null, userId: 1 })
-  const [showAddCommentDialog, setShowAddCommentDialog] = useState(false)
-  const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
-  const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
-  const [showUserModal, setShowUserModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
+  // 전역 상태
+  // const [searchQuery, setSearchQuery] = useState(queryParams.get("search") || "")
+  const { setPosts, setTotal } = usePostStore()
+  const { searchQuery, setSearchQuery } = useSearchQueryStore()
+  // const setShowPostDetailDialog = usePostModalStore((state) => state.setShowPostDetailDialog)
+  const { skip, limit, setLimit, setSkip } = usePaginationStore()
+  const setLoading = useLoadingStore((state) => state.setLoading)
+  const { sortBy, sortOrder, setSortBy, setSortOrder } = useSortStore()
+  const { selectedTag, setSelectedTag } = useSelectedTagStore()
+  // const setShowUserModal = useUserModalStore((state) => state.setShowUserModal)
+  // 커스텀 훅
+
+  // 지역 상태
+  // const [total, setTotal] = useState(0)
+  // const [skip, setSkip] = useState(parseInt(queryParams.get("skip") || "0"))
+  // const [limit, setLimit] = useState(parseInt(queryParams.get("limit") || "10"))
+  // const [sortBy, setSortBy] = useState(queryParams.get("sortBy") || "")
+  // const [sortOrder, setSortOrder] = useState(queryParams.get("sortOrder") || "asc")
+  // const [loading, setLoading] = useState(false)
+  // const [selectedTag, setSelectedTag] = useState(queryParams.get("tag") || "")
 
   // URL 업데이트 함수
   const updateURL = () => {
@@ -84,8 +63,8 @@ const PostsManager = () => {
   // 게시물 가져오기
   const fetchPosts = () => {
     setLoading(true)
-    let postsData
-    let usersData
+    let postsData: ResonsePostPagination
+    let usersData: ResponseUser[]
 
     fetch(`/api/posts?limit=${limit}&skip=${skip}`)
       .then((response) => response.json())
@@ -109,35 +88,6 @@ const PostsManager = () => {
       .finally(() => {
         setLoading(false)
       })
-  }
-
-  // 태그 가져오기
-  const fetchTags = async () => {
-    try {
-      const response = await fetch("/api/posts/tags")
-      const data = await response.json()
-      setTags(data)
-    } catch (error) {
-      console.error("태그 가져오기 오류:", error)
-    }
-  }
-
-  // 게시물 검색
-  const searchPosts = async () => {
-    if (!searchQuery) {
-      fetchPosts()
-      return
-    }
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/posts/search?q=${searchQuery}`)
-      const data = await response.json()
-      setPosts(data.posts)
-      setTotal(data.total)
-    } catch (error) {
-      console.error("게시물 검색 오류:", error)
-    }
-    setLoading(false)
   }
 
   // 태그별 게시물 가져오기
@@ -168,76 +118,6 @@ const PostsManager = () => {
     setLoading(false)
   }
 
-  // 댓글 가져오기
-  const fetchComments = async (postId) => {
-    if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
-    try {
-      const response = await fetch(`/api/comments/post/${postId}`)
-      const data = await response.json()
-      setComments((prev) => ({ ...prev, [postId]: data.comments }))
-    } catch (error) {
-      console.error("댓글 가져오기 오류:", error)
-    }
-  }
-
-  // 댓글 삭제
-  const deleteComment = async (id, postId) => {
-    try {
-      await fetch(`/api/comments/${id}`, {
-        method: "DELETE",
-      })
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].filter((comment) => comment.id !== id),
-      }))
-    } catch (error) {
-      console.error("댓글 삭제 오류:", error)
-    }
-  }
-
-  // 댓글 좋아요
-  const likeComment = async (id, postId) => {
-    try {
-      const response = await fetch(`/api/comments/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ likes: comments[postId].find((c) => c.id === id).likes + 1 }),
-      })
-      const data = await response.json()
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].map((comment) =>
-          comment.id === data.id ? { ...data, likes: comment.likes + 1 } : comment,
-        ),
-      }))
-    } catch (error) {
-      console.error("댓글 좋아요 오류:", error)
-    }
-  }
-
-  // 게시물 상세 보기
-  const openPostDetail = (post) => {
-    setSelectedPost(post)
-    fetchComments(post.id)
-    setShowPostDetailDialog(true)
-  }
-
-  // 사용자 모달 열기
-  const openUserModal = async (user) => {
-    try {
-      const response = await fetch(`/api/users/${user.id}`)
-      const userData = await response.json()
-      setSelectedUser(userData)
-      setShowUserModal(true)
-    } catch (error) {
-      console.error("사용자 정보 가져오기 오류:", error)
-    }
-  }
-
-  useEffect(() => {
-    fetchTags()
-  }, [])
-
   useEffect(() => {
     if (selectedTag) {
       fetchPostsByTag(selectedTag)
@@ -256,21 +136,6 @@ const PostsManager = () => {
     setSortOrder(params.get("sortOrder") || "asc")
     setSelectedTag(params.get("tag") || "")
   }, [location.search])
-
-  // 하이라이트 함수 추가
-  const highlightText = (text: string, highlight: string) => {
-    if (!text) return null
-    if (!highlight.trim()) {
-      return <span>{text}</span>
-    }
-    const regex = new RegExp(`(${highlight})`, "gi")
-    const parts = text.split(regex)
-    return (
-      <span>
-        {parts.map((part, i) => (regex.test(part) ? <mark key={i}>{part}</mark> : <span key={i}>{part}</span>))}
-      </span>
-    )
-  }
 
   return (
     <Card className="w-full max-w-6xl mx-auto">

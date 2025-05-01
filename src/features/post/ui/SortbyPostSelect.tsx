@@ -1,4 +1,9 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@radix-ui/react-select"
+import { useSortStore } from "../../../entities/post/model/useSortStore"
+
 export const SortbyPostSelect = () => {
+  const { sortBy, setSortBy } = useSortStore()
+
   return (
     <Select value={sortBy} onValueChange={setSortBy}>
       <SelectTrigger className="w-[180px]">

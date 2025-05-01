@@ -1,8 +1,15 @@
+import { NewComment } from "../../../entities/comment/model/type"
+import { useCommentModalStore } from "../../../entities/comment/model/useCommentModalStore"
+import { useCommentStore } from "../../../entities/comment/model/useCommentStore"
 import { commentApi } from "../api/commentApi"
+import { Dialog, DialogContent, DialogTitle, Button, DialogHeader, Textarea } from "../../../shared/ui"
 
 export const AddCommentForm = () => {
+  const { setComments, newComment, setNewComment } = useCommentStore()
+  const { showAddCommentDialog, setShowAddCommentDialog } = useCommentModalStore()
+
   // 댓글 추가
-  const addComment = async (newComment) => {
+  const addComment = async (newComment: NewComment) => {
     try {
       const data = await commentApi.add(newComment)
       setComments((prev) => ({
@@ -21,16 +28,18 @@ export const AddCommentForm = () => {
   return (
     <Dialog open={showAddCommentDialog} onOpenChange={setShowAddCommentDialog}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="">
           <DialogTitle>새 댓글 추가</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Textarea
             placeholder="댓글 내용"
             value={newComment.body}
-            onChange={(e) => setNewComment({ ...newComment, body: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setNewComment({ ...newComment, body: e.target.value })
+            }
           />
-          <Button onClick={addComment}>댓글 추가</Button>
+          <Button onClick={() => addComment(newComment)}>댓글 추가</Button>
         </div>
       </DialogContent>
     </Dialog>

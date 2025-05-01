@@ -1,4 +1,5 @@
 export interface Post {
+  author: ResponseUser | undefined
   id: number
   title: string
   body: string
@@ -12,3 +13,22 @@ export interface Post {
 }
 
 export type NewPost = Pick<Post, "title" | "body" | "userId">
+
+export interface ResonsePostPagination {
+  posts: Post[]
+  total: number
+  skip: number
+  limit: number
+}
+
+export interface ResponseUser {
+  id: number
+  username: string
+  image: string
+}
+
+export interface ResponseTag {
+  slug: string
+  name: string
+  url: string
+}

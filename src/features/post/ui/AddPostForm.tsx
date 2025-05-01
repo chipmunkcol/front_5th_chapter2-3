@@ -1,9 +1,12 @@
 import { Post } from "../../../entities/post/model/type"
+import { usePostModalStore } from "../../../entities/post/model/usePostModalStore"
 import { usePostStore } from "../../../entities/post/model/usePostStore"
 import { postApi } from "../api/postApi"
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input, Textarea } from "../../../shared/ui"
 
 export const AddPostForm = () => {
   const { posts, setPosts, newPost, setNewPost } = usePostStore()
+  const { showAddDialog, setShowAddDialog } = usePostModalStore()
 
   // 게시물 추가
   const addPost = async (newPost: Post) => {

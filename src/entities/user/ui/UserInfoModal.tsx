@@ -1,4 +1,11 @@
+import { useUserModalStore } from "../model/useUserModalStore"
+import { useUserStore } from "../model/useUserStore"
+import { Dialog, DialogContent, DialogTitle, DialogHeader } from "../../../shared/ui"
+
 export const UserInfoModal = () => {
+  const { selectedUser } = useUserStore()
+  const { showUserModal, setShowUserModal } = useUserModalStore()
+
   return (
     <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
       <DialogContent>

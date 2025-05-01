@@ -1,8 +1,17 @@
+import { Trash2 } from "lucide-react"
+import { usePostStore } from "../../../entities/post/model/usePostStore"
+import { Button } from "../../../shared/ui"
 import { postApi } from "../api/postApi"
 
-export const DeletePostBtn = ({ postId }) => {
+interface Props {
+  postId: number
+}
+
+export const DeletePostBtn = ({ postId }: Props) => {
+  const { posts, setPosts } = usePostStore()
+
   // 게시물 삭제
-  const deletePost = async (postId) => {
+  const deletePost = async (postId: number) => {
     try {
       await postApi.delete(postId)
       setPosts(posts.filter((post) => post.id !== postId))
